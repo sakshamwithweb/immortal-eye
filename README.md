@@ -1,0 +1,2 @@
+## Immortal Eye
+Immortal Eyes is an AI-powered monitoring system designed to protect elderly residents in assisted living facilities. It analyzes video and audio feeds to detect suspicious or abusive behaviors in real time, alerting caregivers to potential incidents.
