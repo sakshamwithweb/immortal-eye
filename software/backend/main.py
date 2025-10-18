@@ -60,7 +60,25 @@ def upload():
     endParse = time.time()
     print(f"Took {endParse - start:.2f} seconds to parse")
 
-    return {'success': True}
+    # Detecting abuse
+    prompt = f"Hey Memories AI, I have attached a video, look at it and tell me do you see any elder abuse in that means any kind of physical or any other bad abuse that must be informed to their family and caretaker? If yes, Send a strict word 'Yes' or else send 'No' word. No other thing and *No Markdown*"
+    
+    req3 = requests.post(
+        "https://api.memories.ai/serve/api/v1/chat",
+        headers=headers,
+        json={
+            "video_nos": [res1.json()['data']['videoNo']],
+            "prompt": prompt
+        },
+        stream=False
+    )
+
+    if "no" in req3.json()["data"]["content"].lower():
+        print("No abuse found")
+        return {'success': True}
+    
+    print("Abuse found, actions will be taken here..")
+
 
 
 if __name__ == '__main__':
