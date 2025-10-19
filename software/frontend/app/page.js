@@ -37,6 +37,9 @@ export default function RecordPage() {
 
               const form = new FormData();
               form.append('clip', file);
+              form.append('numbers', JSON.stringify({
+                "caretakers":["+123456789","+654789321","+258963147","+159874632"], // Dummy phone numbers, in future, we will take from the user
+              }));
 
               try {
                 await fetch(

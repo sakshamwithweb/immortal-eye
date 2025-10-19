@@ -7,6 +7,8 @@ from twilio.rest import Client
 import time
 import boto3
 from dotenv import load_dotenv
+import json
+from concurrent.futures import ThreadPoolExecutor
 
 # Config
 load_dotenv()
@@ -27,11 +29,13 @@ s3 = boto3.client(
 @app.route('/upload', methods=['POST'])
 def upload():
     """
-    upload() runs when /upload is called. It takes a video file (clip), converts it to MP4, saves it, uploads it to memories.ai via /serve/api/v1/upload, then polls every 3s to check if the video's parsed.
+    upload() runs when /upload is called. It takes a video file (clip), converts it to MP4, saves it, uploads it to memories.ai via /serve/api/v1/upload, then polls every 3s to check if the video's parsed. Afterwards, it uses /api/v1/chat to detect alder abuse and if it detects any abuse, it takes action immediately like calling to local APS and caretakers, sending sms in case they don't attend using twillio API and it also preserve the evidence video in our storage bucket.
     """
     # Save file and convert to MP4
     start = time.time()
     clip = request.files['clip']
+    caretakers_number = json.loads(request.form.get('numbers'))["caretakers"]
+
     webm_file = os.path.join(app.config['UPLOAD_FOLDER'], clip.filename)
     mp4_file = os.path.join(
         app.config['UPLOAD_FOLDER'], f"{clip.filename.split('.')[0]}.mp4")
@@ -93,21 +97,32 @@ def upload():
 
     print("Abuse found, actions will be taken here..")
 
-    receiver_no = "+123456789"  # Dummyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy
-
     # Call
-    call = client.calls.create(
-        twiml='<Response><Say>Hello Grandpa!</Say></Response>',
-        from_=os.getenv("TWILIO_PHONE_NUMBER"),
-        to=receiver_no
-    )
+    def make_call(number):
+        call = client.calls.create(
+            twiml='<Response><Say>Hello Grandpa!</Say></Response>',
+            from_=os.getenv("TWILIO_PHONE_NUMBER"),
+            to=number
+        )
+        return call
+        
+    with ThreadPoolExecutor(max_workers=10) as executor: # Call to 10 numbers at once parallelly
+        executor.map(make_call, caretakers_number)
+    
+    # Call to APS
+    #--------------------------------------------------------------
 
     # SMS
-    # message = client.messages.create(
-    #     body="Hey You, are you getting this message? We are from Immortal Eye 👁️",
-    #     from_=os.getenv("TWILIO_PHONE_NUMBER"),
-    #     to=receiver_no
-    # )
+    def send_sms(number):
+        call = client.messages.create(
+            body="Hey You, are you getting this message? We are from Immortal Eye 👁️",
+            from_=os.getenv("TWILIO_PHONE_NUMBER"),
+            to=number
+        )
+        return call
+        
+    with ThreadPoolExecutor(max_workers=10) as executor: # Send sms to everyone parallelly
+        executor.map(send_sms, caretakers_number)
 
     # Save Evidencez
     s3.upload_file(mp4_file, os.getenv("BUCKET_NAME"), f"{clip.filename.split('.')[0]}.mp4", ExtraArgs={'ContentType': 'video/mp4'})
@@ -116,6 +131,3 @@ def upload():
 
 
     return {'success': True}
-
-if __name__ == '__main__':
-    app.run(debug=True, port=5000)
