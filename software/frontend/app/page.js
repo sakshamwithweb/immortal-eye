@@ -5,6 +5,7 @@ import { useRef, useState } from 'react';
 export default function RecordPage() {
   const videoRef = useRef(null);
   const videoDuration = 30_000; // It is numeric seperator same like int that makes large nuber easier to read
+  const [location, setLocation] = useState(null);
 
   const startRecording = async () => {
     try {
@@ -38,8 +39,9 @@ export default function RecordPage() {
               const form = new FormData();
               form.append('clip', file);
               form.append('numbers', JSON.stringify({
-                "caretakers":["+123456789","+654789321","+258963147","+159874632"], // Dummy phone numbers, in future, we will take from the user
+                "caretakers": ["+123456789", "+654789321", "+258963147", "+159874632"], // Dummy phone numbers, task: Make a form like that takes caretakers number then send here
               }));
+              form.append('location', location)
 
               try {
                 await fetch(
@@ -71,6 +73,23 @@ export default function RecordPage() {
     }
   };
 
+  const requestLocation = () => {
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        ({ coords }) => {
+          setLocation({
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+          });
+        },
+        (error) => console.log("Error:", error),
+        { enableHighAccuracy: true }
+      );
+    } else {
+      alert("Geolocation is not supported in your browser");
+    }
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <video
@@ -83,7 +102,10 @@ export default function RecordPage() {
         height={360}
       ></video>
       <button
-        onClick={startRecording}
+        onClick={() => {
+          requestLocation();
+          startRecording();
+        }}
         className="mt-4 px-4 py-2 text-white rounded border bg-gray-500"
       >
         Start Recording
