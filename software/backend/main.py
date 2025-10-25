@@ -38,7 +38,7 @@ def upload():
     start = time.time()
     clip = request.files['clip']
     caretakers_number = json.loads(request.form.get('numbers'))["caretakers"]
-    location = request.form.get('location')
+    location = json.loads(request.form.get('location'))
 
     webm_file = os.path.join(app.config['UPLOAD_FOLDER'], clip.filename)
     mp4_file = os.path.join(
