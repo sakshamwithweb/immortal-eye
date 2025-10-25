@@ -5,9 +5,8 @@ import { useRef, useState } from 'react';
 export default function RecordPage() {
   const videoRef = useRef(null);
   const videoDuration = 30_000; // It is numeric seperator same like int that makes large nuber easier to read
-  const [location, setLocation] = useState(null);
 
-  const startRecording = async () => {
+  const startRecording = async (loc) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { width: 640, height: 360, frameRate: 15 },
@@ -41,7 +40,7 @@ export default function RecordPage() {
               form.append('numbers', JSON.stringify({
                 "caretakers": ["+123456789", "+654789321", "+258963147", "+159874632"], // Dummy phone numbers, task: Make a form like that takes caretakers number then send here
               }));
-              form.append('location', location)
+              form.append('location', JSON.stringify(loc.toJSON()))
 
               try {
                 await fetch(
@@ -68,7 +67,6 @@ export default function RecordPage() {
         await recordChunk();
       }
     } catch (err) {
-      console.error('Error accessing camera/mic:', err);
       alert("Something went wrong")
     }
   };
@@ -77,12 +75,9 @@ export default function RecordPage() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
-          setLocation({
-            latitude: coords.latitude,
-            longitude: coords.longitude,
-          });
+          startRecording(coords)
         },
-        (error) => console.log("Error:", error),
+        (error) => alert("Error fetching location:"),
         { enableHighAccuracy: true }
       );
     } else {
@@ -102,10 +97,7 @@ export default function RecordPage() {
         height={360}
       ></video>
       <button
-        onClick={() => {
-          requestLocation();
-          startRecording();
-        }}
+        onClick={requestLocation} // btn -> requestLocation -> startRecording(location)
         className="mt-4 px-4 py-2 text-white rounded border bg-gray-500"
       >
         Start Recording
