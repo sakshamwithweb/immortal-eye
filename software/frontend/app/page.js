@@ -1,10 +1,15 @@
 'use client';
 
+import AddContact from '@/components/AddContact';
+import { Button } from '@/components/ui/button';
+import { Play } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 export default function RecordPage() {
+  const [videoStarted, setVideoStarted] = useState(false)
+  const [caretakerNumbers, setCaretakerNumbers] = useState([])
   const videoRef = useRef(null);
-  const videoDuration = 30_000; // It is numeric seperator same like int that makes large nuber easier to read
+  const videoDuration = 30_000; // It is numeric seperator same like int that makes large number easier to read
 
   const startRecording = async (loc) => {
     try {
@@ -38,7 +43,7 @@ export default function RecordPage() {
               const form = new FormData();
               form.append('clip', file);
               form.append('numbers', JSON.stringify({
-                "caretakers": ["+123456789", "+654789321", "+258963147", "+159874632"], // Dummy phone numbers, task: Make a form like that takes caretakers number then send here
+                "caretakers": caretakerNumbers, // Dummy phone numbers, task: Make a form like that takes caretakers number then send here
               }));
               form.append('location', JSON.stringify(loc.toJSON()))
 
@@ -75,6 +80,7 @@ export default function RecordPage() {
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
         ({ coords }) => {
+          setVideoStarted(true)
           startRecording(coords)
         },
         (error) => alert("Error fetching location:"),
@@ -86,22 +92,26 @@ export default function RecordPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <video
-        ref={videoRef}
-        autoPlay
-        playsInline
-        muted
-        className="border rounded-md"
-        width={640}
-        height={360}
-      ></video>
-      <button
-        onClick={requestLocation} // btn -> requestLocation -> startRecording(location)
-        className="mt-4 px-4 py-2 text-white rounded border bg-gray-500"
-      >
-        Start Recording
-      </button>
+    <div className="flex flex-col items-center justify-center min-h-screen p-4 gap-4">
+      {videoStarted ? (
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="border rounded-md"
+          width={640}
+          height={360}
+        ></video>
+      ) : (
+        <>
+          <AddContact caretakerNumbers={caretakerNumbers} setCaretakerNumbers={setCaretakerNumbers} />
+
+          <Button onClick={requestLocation}> {/* btn -> requestLocation -> startRecording(location) */}
+            Start Recording <Play/>
+          </Button>
+        </>
+      )}
     </div>
   );
 }
