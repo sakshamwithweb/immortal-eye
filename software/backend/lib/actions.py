@@ -9,7 +9,7 @@ def call_to_caretakers(client, twilio_phone, caretakers_number):
     # Call
     def make_call(number):
         call = client.calls.create(
-            twiml="<Response><Say>Hello Grandpa's family members!</Say></Response>",
+            twiml="<Response><Say>Alert from Immortal Eye! Alert from Immortal Eye! The Elder who appointed you as caretaker is being abused! We have shared the location and the footage in the message you will be getting after this call.</Say></Response>",
             from_=twilio_phone,
             to=number
         )
@@ -20,10 +20,10 @@ def call_to_caretakers(client, twilio_phone, caretakers_number):
         executor.map(make_call, caretakers_number)
 
 
-def sms_to_caretakers(client, twilio_phone, caretakers_number):
+def sms_to_caretakers(client, twilio_phone, caretakers_number, location, footage_url):
     def send_sms(number):
         sms = client.messages.create(
-            body="Hey You, are you getting this message? We are from Immortal Eye 👁️",
+            body = f"Emergency Alert from Immortal Eye! The elder who appointed you as caretaker is being abused. APS and other caretakers have been notified.\n\nLocation: {location['latitude']}, {location['longitude']}\nFootage (expires in 1 hr): {footage_url}",
             from_=twilio_phone,
             to=number
         )
@@ -34,14 +34,14 @@ def sms_to_caretakers(client, twilio_phone, caretakers_number):
         executor.map(send_sms, caretakers_number)
 
 
-def call_to_aps(location, server_url, client, twilio_phone):
+def call_to_aps(location, server_url, client, twilio_phone, video_url):
     """Takes location, server_url, client and twilio_phone. Then it looks for nearest APS and gather some user data and call to APS"""
 
     # Get nearest APS and Call
     aps_number = get_nearest_aps(location)
 
     # Need more, like name, accurate place name etc etc. to give to cops
-    user_data = json.dumps({"location": location})
+    user_data = json.dumps({"location": location, "video_url": video_url})
     user_data_query_string = urllib.parse.quote(user_data)
 
     # call to aps

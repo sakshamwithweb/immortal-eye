@@ -8,6 +8,8 @@ def choose_action(transcript, context, given_data, openai_key):
     Ultimate goal is to talk to a human and give all the infos..
     """
 
+    # Currently we can't tell the video_url verbally as it is too long which is why after hackathon, do this: before calling to aps, shorten the url then send..
+
     prompt = f"""
 You are a real-time AI call assistant integrated with Twilio.
 
@@ -19,7 +21,7 @@ Your mission:
   - Be creative and efficient — your goal is to reach a human quickly.
 - If the other side is a **human**, respond naturally using the data provided in "given_data", 
   and then communicate this message clearly:
-  "There is a grandma in the location I have shared, she is abused by her caretakers."
+  "Hey, We are immortal Eye, a platform that monitors elder everytime and if detects any abuse so takes action. There is a grandma in this location: latitude: {given_data['location']['latitude']}, longitude: {given_data['location']['latitude']}, she is abused by her caretakers and need support as soon as possible."
 
 If the other side sounds like a live person (they introduce themselves or say 'how may I help you'), 
 treat them as HUMAN immediately and deliver the message using the given data.

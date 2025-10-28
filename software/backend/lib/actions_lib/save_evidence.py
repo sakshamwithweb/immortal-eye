@@ -11,3 +11,13 @@ def save_evidence(mp4_file, bucket_name, clip, aws_access_key_id, aws_secret_acc
     )
     
     s3.upload_file(mp4_file, bucket_name, f"{clip.filename.split('.')[0]}.mp4", ExtraArgs={'ContentType': 'video/mp4'})
+
+    video_key = f"{clip.filename.split('.')[0]}.mp4"
+
+    video_url = s3.generate_presigned_url(
+        ClientMethod='get_object',
+        Params={'Bucket': bucket_name, 'Key': video_key},
+        ExpiresIn=3600  # seconds (1 hour)
+    )
+
+    return video_url

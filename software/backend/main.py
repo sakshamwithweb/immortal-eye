@@ -52,17 +52,18 @@ def upload():
 
     print("Abuse found, actions will be taken parallelly here..")
 
+    # Save Evidence
+    video_url = save_evidence(mp4_file, os.getenv("BUCKET_NAME"), clip, os.getenv("S3_ACCESS_KEY"), os.getenv("S3_SECRET_KEY"), os.getenv("S3_REGION"), os.getenv("S3_ENDPOINT"))
+
     # Call to Caretakers
     call_to_caretakers(client, os.getenv("TWILIO_PHONE_NUMBER"), caretakers_number)
 
     # Sms to Caretakers
-    sms_to_caretakers(client, os.getenv("TWILIO_PHONE_NUMBER"), caretakers_number)
+    sms_to_caretakers(client, os.getenv("TWILIO_PHONE_NUMBER"), caretakers_number, location, video_url)
 
     # Call to APS
-    sid = call_to_aps(location, os.getenv("SERVER_URL"), client, os.getenv("TWILIO_PHONE_NUMBER"))
+    sid = call_to_aps(location, os.getenv("SERVER_URL"), client, os.getenv("TWILIO_PHONE_NUMBER"), video_url)
 
-    # Save Evidence
-    save_evidence(mp4_file, os.getenv("BUCKET_NAME"), clip, os.getenv("S3_ACCESS_KEY"), os.getenv("S3_SECRET_KEY"), os.getenv("S3_REGION"), os.getenv("S3_ENDPOINT"))
 
     return {'success': True}
 
