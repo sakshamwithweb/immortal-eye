@@ -14,7 +14,12 @@ export default function RecordPage() {
   const startRecording = async (loc) => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 640, height: 360, frameRate: 15 },
+        video: {
+          width: 640,
+          height: 360,
+          frameRate: 15,
+          facingMode: { exact: 'environment' }
+        },
         audio: true,
       });
 
@@ -108,7 +113,7 @@ export default function RecordPage() {
           <AddContact caretakerNumbers={caretakerNumbers} setCaretakerNumbers={setCaretakerNumbers} />
 
           <Button onClick={requestLocation}> {/* btn -> requestLocation -> startRecording(location) */}
-            Start Recording <Play/>
+            Start Recording <Play />
           </Button>
         </>
       )}
